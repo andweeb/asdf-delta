@@ -6,54 +6,27 @@
 
 </div>
 
-# Contents
+## Dependencies
 
-- [Dependencies](#dependencies)
-- [Install](#install)
-- [Why?](#why)
-- [Contributing](#contributing)
-- [License](#license)
+Generic POSIX utilities `bash`, `curl`, `tar`
 
-# Dependencies
-
-- `bash`, `curl`, `tar`: generic POSIX utilities.
-- `SOME_ENV_VAR`: set this environment variable in your shell config to load the correct version of tool x.
-
-# Install
-
-Plugin:
+## Install
 
 ```shell
-asdf plugin add delta
-# or
-asdf plugin add delta https://github.com/andweeb/asdf-delta.git
+# Add the plugin
+$ asdf plugin add delta https://github.com/andweeb/asdf-delta.git
+
+# Manage and use delta
+$ asdf list-all delta       # Show all installable versions
+$ asdf install delta latest # Install specific version
+$ asdf global delta latest  # Set a version globally (on your ~/.tool-versions file)
+$ delta                     # Now delta is available
+Usage: delta minus_file plus_file
 ```
 
-delta:
-
-```shell
-# Show all installable versions
-asdf list-all delta
-
-# Install specific version
-asdf install delta latest
-
-# Set a version globally (on your ~/.tool-versions file)
-asdf global delta latest
-
-# Now delta commands are available
-delta --help
-```
-
-Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to
+See [asdf](https://github.com/asdf-vm/asdf) for more instructions on how to
 install & manage versions.
 
-# Contributing
+## Contributing
 
 Contributions of any kind welcome! See the [contributing guide](contributing.md).
-
-[Thanks goes to these contributors](https://github.com/andweeb/asdf-delta/graphs/contributors)!
-
-# License
-
-See [LICENSE](LICENSE) © [Andrew Kwon](https://github.com/andweeb/)
