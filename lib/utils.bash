@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for delta.
 GH_REPO="https://github.com/dandavison/delta"
 TOOL_NAME="delta"
 TOOL_TEST="delta --help"
@@ -14,11 +13,6 @@ fail() {
 
 curl_opts=(-fsSL)
 
-# NOTE: You might want to remove this if delta is not hosted on GitHub releases.
-if [ -n "${GITHUB_API_TOKEN:-}" ]; then
-  curl_opts=("${curl_opts[@]}" -H "Authorization: token $GITHUB_API_TOKEN")
-fi
-
 sort_versions() {
   sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
     LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
@@ -27,12 +21,10 @@ sort_versions() {
 list_github_tags() {
   git ls-remote --tags --refs "$GH_REPO" |
     grep -o 'refs/tags/.*' | cut -d/ -f3- |
-    sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
+    sed 's/^v//'
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-  # Change this function if delta has other means of determining installable versions.
   list_github_tags
 }
 
@@ -41,11 +33,39 @@ download_release() {
   version="$1"
   filename="$2"
 
-  # TODO: Adapt the release URL convention for delta
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  url="$GH_REPO/releases/download/$version/$filename"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
+}
+
+get_arch() {
+  arch=$(uname -m | tr '[:upper:]' '[:lower:]')
+  case $arch in
+    arm64)
+      arch='aarch64'
+      ;;
+  esac
+
+  echo $arch
+}
+
+get_platform() {
+  plat=$(uname | tr '[:upper:]' '[:lower:]')
+
+  case $plat in
+    darwin)
+      plat='apple-darwin'
+      ;;
+    linux)
+      plat='unknown-linux-gnu'
+      ;;
+    windows)
+      plat='pc-windows=msvc'
+      ;;
+  esac
+
+  echo $plat
 }
 
 install_version() {
@@ -57,15 +77,16 @@ install_version() {
     fail "asdf-$TOOL_NAME supports release installs only"
   fi
 
-  # TODO: Adapt this to proper extension and adapt extracting strategy.
-  local release_file="$install_path/$TOOL_NAME-$version.tar.gz"
+  arch="$(get_arch)"
+  platform="$(get_platform)"
+  local release_file="delta-$version-$arch-$platform.tar.gz"
+
   (
-    mkdir -p "$install_path"
+    mkdir -p "$install_path/bin"
     download_release "$version" "$release_file"
-    tar -xzf "$release_file" -C "$install_path" --strip-components=1 || fail "Could not extract $release_file"
+    tar -xzf "$release_file" -C "$install_path/bin" --strip-components=1 || fail "Could not extract $release_file"
     rm "$release_file"
 
-    # TODO: Asert delta executable exists.
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
     test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
