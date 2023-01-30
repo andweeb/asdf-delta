@@ -58,7 +58,7 @@ get_platform() {
       plat='apple-darwin'
       ;;
     linux)
-      plat='unknown-linux-gnu'
+      plat='unknown-linux-musl'
       ;;
     windows)
       plat='pc-windows=msvc'
